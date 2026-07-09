@@ -13,8 +13,11 @@ for p in (str(ROOT), str(ANALYSIS)):     # import firstdue_mcp, brla, reference,
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from dotenv import load_dotenv
-load_dotenv(ROOT / ".env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+except Exception:
+    pass  # no .env on hosted deploys; secrets come from st.secrets / env vars
 
 # Bridge Streamlit Cloud secrets -> env vars so the First Due client (reads os.environ) works
 # on hosted deploys where you set secrets in the platform UI instead of committing a .env.

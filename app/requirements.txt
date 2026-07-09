@@ -1,6 +1,13 @@
-# BRFD Command Suite app. Install the whole stack:
-#   pip install -r requirements.txt            (core: mcp, requests, python-dotenv)
-#   pip install -r analysis/requirements.txt   (geo/analysis: osmnx, folium, h3, ...)
-#   pip install -r app/requirements.txt        (this file)
+# Streamlit Community Cloud installs the requirements.txt next to the main file (app/Home.py),
+# so this must be the COMPLETE app runtime — not just streamlit/pandas.
 streamlit>=1.40
 pandas>=2.0
+requests>=2.31
+python-dotenv>=1.0
+
+# Light geospatial deps so the hotspot / SVI / overlay maps can regenerate on a hosted deploy.
+# (Heavy deps — osmnx, geopandas, scikit-learn — are local-only; see analysis/requirements.txt.)
+folium>=0.16
+branca>=0.7
+h3>=4.0
+shapely>=2.0
