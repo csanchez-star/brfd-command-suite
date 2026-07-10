@@ -16,7 +16,7 @@ with tab1:
 with tab2:
     st.markdown("NFPA 4- and 8-minute drive-time isochrones per station, with incidents that fall "
                 "outside coverage highlighted.")
+    st.caption("⏳ Heavy map — it downloads the parish street network and computes drive-time "
+               "isochrones, so it can take a few minutes (and a lot of memory) to rebuild.")
     embed("BRFD_Station_Coverage.html", height=620)
-    st.caption("Downloads OpenStreetMap street data; if the default Overpass server is blocked, "
-               "set `OVERPASS_URL` before regenerating.")
     regenerate("station_coverage.py", label="Regenerate coverage map", slow=True)

@@ -10,10 +10,13 @@ python-dotenv>=1.0
 streamlit>=1.40
 pandas>=2.0
 
-# Light geospatial deps so the hotspot / SVI / overlay maps can regenerate on a hosted deploy.
-# (Heavy deps for station coverage — osmnx, geopandas, scikit-learn — live in
-#  analysis/requirements.txt and run locally only; see DEPLOY.md.)
+# Geospatial deps so every map can regenerate on the hosted app (nothing local).
 folium>=0.16
 branca>=0.7
 h3>=4.0
 shapely>=2.0
+# Heavy stack for the station-coverage map (drive-time isochrones from OpenStreetMap).
+# Note: this map downloads the parish street network + does real routing math — it can strain
+# a free hosting tier's memory. If it OOMs there, pre-render it or use a larger instance.
+osmnx>=2.0
+scikit-learn>=1.4

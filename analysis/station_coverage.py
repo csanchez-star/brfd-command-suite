@@ -23,13 +23,21 @@ from dotenv import load_dotenv; load_dotenv(os.path.join(ROOT, ".env"))
 sys.path.insert(0, ROOT)
 
 import requests
-import networkx as nx
-import osmnx as ox
 import folium
-import geopandas as gpd
 from shapely.geometry import Point
 from shapely.ops import unary_union
 from firstdue_mcp.client import FirstDueClient
+
+# Heavy geospatial stack — only present on a local install (analysis/requirements.txt),
+# not on the hosted app. Guard so the app shows a clean message instead of an ImportError.
+try:
+    import networkx as nx
+    import osmnx as ox
+    import geopandas as gpd
+    _GEO_OK = True
+except ImportError as _e:
+    _GEO_OK = False
+    _GEO_ERR = str(_e)
 
 # OpenStreetMap data comes from an Overpass server. The default (overpass-api.de) is
 # intermittently unreachable from some networks; set OVERPASS_URL to a mirror if needed,
@@ -99,6 +107,13 @@ def pull_incident_points(c, n_pages=2):
 
 
 def main():
+    if not _GEO_OK:
+        print("Station coverage is a LOCAL-ONLY analysis. It needs the heavy geospatial stack "
+              "(osmnx, networkx, geopandas, scikit-learn) and downloads OpenStreetMap street data — "
+              "neither is available on the hosted app.\n\nRun it on a machine with the full install:\n"
+              "  pip install -r analysis/requirements.txt\n  python analysis/station_coverage.py\n\n"
+              f"(missing module: {_GEO_ERR})")
+        return
     print("loading stations...", file=sys.stderr)
     stations = load_stations()
     print(f"  {len(stations)} BRFD stations", file=sys.stderr)
