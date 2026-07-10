@@ -28,23 +28,20 @@ from shapely.geometry import Point
 from shapely.ops import unary_union
 from firstdue_mcp.client import FirstDueClient
 
-# Heavy geospatial stack — only present on a local install (analysis/requirements.txt),
-# not on the hosted app. Guard so the app shows a clean message instead of an ImportError.
+# Heavy geospatial stack. Guarded so the app shows a clean message instead of an ImportError
+# if these aren't installed. OSM data comes from an Overpass server — set OVERPASS_URL to a
+# mirror if the default is unreachable (e.g. https://maps.mail.ru/osm/tools/overpass/api).
 try:
     import networkx as nx
     import osmnx as ox
     import geopandas as gpd
+    ox.settings.requests_timeout = 300
+    if os.environ.get("OVERPASS_URL"):
+        ox.settings.overpass_url = os.environ["OVERPASS_URL"]
     _GEO_OK = True
 except ImportError as _e:
     _GEO_OK = False
     _GEO_ERR = str(_e)
-
-# OpenStreetMap data comes from an Overpass server. The default (overpass-api.de) is
-# intermittently unreachable from some networks; set OVERPASS_URL to a mirror if needed,
-# e.g. OVERPASS_URL=https://maps.mail.ru/osm/tools/overpass/api
-ox.settings.requests_timeout = 300
-if os.environ.get("OVERPASS_URL"):
-    ox.settings.overpass_url = os.environ["OVERPASS_URL"]
 
 
 def _union(geoms):
