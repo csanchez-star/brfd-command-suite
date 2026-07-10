@@ -12,10 +12,11 @@ htype = col2.text_input("Type code (optional)", "")
 
 if st.button("Query hydrants", type="primary"):
     client = get_client()
-    try:
-        env = client.list_hydrants(hydrant_status_code=status, hydrant_type_code=htype or None)
-    except Exception as e:
-        st.error(str(e)); st.stop()
+    with st.spinner("Loading hydrants from First Due…"):
+        try:
+            env = client.list_hydrants(hydrant_status_code=status, hydrant_type_code=htype or None)
+        except Exception as e:
+            st.error(str(e)); st.stop()
     items = env.get("items", []) if isinstance(env, dict) else (env or [])
     total = env.get("total_hydrant_records") if isinstance(env, dict) else len(items)
     st.metric(f"{status.replace('_', ' ').title()} hydrants", f"{total:,}" if total else 0)

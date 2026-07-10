@@ -15,11 +15,12 @@ end = c2.date_input("To", dt.date.today() + dt.timedelta(days=1))
 
 if st.button("Query incidents", type="primary"):
     client = get_client()
-    try:
-        env = client.list_fire_incidents(start_alarm_at=f"{start}T00:00:00Z",
-                                          end_alarm_at=f"{end}T00:00:00Z", page=1)
-    except Exception as e:
-        st.error(str(e)); st.stop()
+    with st.spinner("Querying First Due…"):
+        try:
+            env = client.list_fire_incidents(start_alarm_at=f"{start}T00:00:00Z",
+                                              end_alarm_at=f"{end}T00:00:00Z", page=1)
+        except Exception as e:
+            st.error(str(e)); st.stop()
     rows = env.get("fire_incidents", [])
     a, b = st.columns(2)
     a.metric("Total in range", f"{env.get('total', 0):,}")

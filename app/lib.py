@@ -65,18 +65,27 @@ def embed(filename, height=620):
 
 
 def regenerate(script, args=None, label=None, slow=False):
-    """Button that runs an analysis script (in analysis/) as a subprocess."""
+    """Button that runs an analysis script (in analysis/) as a subprocess, streaming its
+    output live so you can watch it work (a real progress meter)."""
     if slow:
-        st.caption("⏳ Slow — pulls a lot of data / heavy compute.")
-    if st.button(label or f"Regenerate ({script})", key=f"regen_{script}"):
-        with st.spinner(f"Running {script} …"):
-            r = subprocess.run([sys.executable, str(ANALYSIS / script)] + (args or []),
-                               capture_output=True, text=True, cwd=str(ANALYSIS))
-        tail = (r.stderr or "") + (r.stdout or "")
-        if r.returncode == 0:
-            st.success("Done — refresh below.")
-            st.code(tail[-1800:] or "ok")
-            st.rerun()
+        st.caption("⏳ This one pulls a lot of data / heavy compute — give it a minute.")
+    if not st.button(label or f"Regenerate ({script})", key=f"regen_{script}"):
+        return
+    lines, rc = [], None
+    with st.status(f"Running {script} …", expanded=True) as status:
+        log = st.empty()
+        proc = subprocess.Popen(
+            [sys.executable, "-u", str(ANALYSIS / script)] + (args or []),
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            cwd=str(ANALYSIS), bufsize=1,
+        )
+        for line in proc.stdout:                 # live stream
+            lines.append(line.rstrip("\n"))
+            log.code("\n".join(lines[-18:]) or "…")
+        rc = proc.wait()
+        if rc == 0:
+            status.update(label=f"{script} — done ✅", state="complete", expanded=False)
         else:
-            st.error(f"Failed (exit {r.returncode}).")
-            st.code(tail[-2500:])
+            status.update(label=f"{script} — failed ❌", state="error")
+    if rc == 0:
+        st.rerun()   # reload so the freshly-built map/report embeds below
