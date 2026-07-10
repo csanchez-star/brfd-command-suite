@@ -16,7 +16,8 @@ with tab1:
 with tab2:
     st.markdown("NFPA 4- and 8-minute drive-time isochrones per station, with incidents that fall "
                 "outside coverage highlighted.")
-    st.caption("⏳ Heavy map — it downloads the parish street network and computes drive-time "
-               "isochrones, so it can take a few minutes (and a lot of memory) to rebuild.")
+    st.caption("📸 Pre-rendered snapshot — this map is computed offline (too heavy for the hosted "
+               "tier) and committed to the repo, so it loads instantly here. Coverage only changes "
+               "when stations move; refresh it with `python analysis/station_coverage.py` locally, "
+               "then commit the result.")
     embed("BRFD_Station_Coverage.html", height=620)
-    regenerate("station_coverage.py", label="Regenerate coverage map", slow=True)

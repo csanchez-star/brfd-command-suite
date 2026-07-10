@@ -163,20 +163,29 @@ def main():
     m = folium.Map(location=[clat, clon], zoom_start=12, tiles="cartodbpositron")
     for secs, lbl, color in reversed(BANDS):  # 8-min under 4-min
         if secs in coverage:
-            folium.GeoJson(coverage[secs].__geo_interface__,
+            # simplify (~45m) so the embedded map is a few hundred KB, not ~16 MB
+            simp = coverage[secs].simplify(0.0004, preserve_topology=True)
+            folium.GeoJson(simp.__geo_interface__,
                            style_function=lambda _f, c=color: {"fillColor": c, "color": c,
                                                                "weight": 1, "fillOpacity": 0.25},
                            name=f"{lbl} coverage").add_to(m)
-    for lon, lat in uncovered:
-        folium.CircleMarker([lat, lon], radius=2, color="#d73027", fill=True,
-                            fill_opacity=0.7, weight=0).add_to(m)
+    # Individual incident dots are operational data — omit by default (safe for a public repo).
+    # Set SHOW_INCIDENTS=1 locally to plot the uncovered-incident points.
+    if os.environ.get("SHOW_INCIDENTS"):
+        for lon, lat in uncovered:
+            folium.CircleMarker([lat, lon], radius=2, color="#d73027", fill=True,
+                                fill_opacity=0.7, weight=0).add_to(m)
     for st in stations:
         folium.Marker([st["lat"], st["lon"]], tooltip=st["name"],
                       icon=folium.Icon(color="blue", icon="fire", prefix="fa")).add_to(m)
     folium.LayerControl().add_to(m)
+    pct4 = inside.get(240, 0) / total * 100
+    pct8 = (inside.get(240, 0) + inside.get(480, 0)) / total * 100
     title = ("<h3 style='font-family:sans-serif'>BRFD Station Drive-Time Coverage</h3>"
-             "<p style='font-family:sans-serif;color:#555'>Green = 4-min, orange = 8-min NFPA travel "
-             "isochrones. Red dots = incidents outside 8-min coverage (gaps). Approximate (optimistic).</p>")
+             f"<p style='font-family:sans-serif;color:#555'>Green = 4-min, orange = 8-min NFPA travel "
+             f"isochrones. Of a recent sample of {total:,} incidents, <b>{pct4:.0f}% fell within a "
+             f"4-minute drive</b> and {pct8:.0f}% within 8 minutes ({len(uncovered)/total*100:.0f}% "
+             f"outside). Approximate (optimistic).</p>")
     m.get_root().html.add_child(folium.Element(title))
     out = os.path.join(OUT, "BRFD_Station_Coverage.html")
     m.save(out)
